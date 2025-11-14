@@ -1,6 +1,8 @@
-# benched-minced-rats
-[![forthebadge](https://forthebadge.com/images/badges/works-on-my-machine.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/made-with-crayons.svg)](https://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/built-with-resentment.svg)](https://forthebadge.com)
+# benched‑minced‑rats
 
-Exploring the myths and realities behind benchmarking JVM flags for minecraft servers.
+[<img src="badges/works-on-my-machine.svg" alt="works on my machine" style="height:30px; width:auto; border:none;">](https://forthebadge.com) 
+[<img src="badges/designed-in-etch-a-sketch.svg" alt="designed in etch a sketch" style="height:30px; width:auto; border:none;">](https://forthebadge.com) 
+[<img src="badges/made-with-crayons.svg" alt="made with crayons" style="height:30px; width:auto; border:none;">](https://forthebadge.com) 
+[<img src="badges/built-with-resentment.svg" alt="built with resentment" style="height:30px; width:auto; border:none;">](https://forthebadge.com)
 
+Exploring the myths and realities behind benchmarking JVM flags for Minecraft servers.
