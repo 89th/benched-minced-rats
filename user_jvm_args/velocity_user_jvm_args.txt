@@ -1,0 +1,8 @@
+-Xms24G
+-Xmx24G
+-XX:+AlwaysPreTouch
+-XX:+ParallelRefProcEnabled
+-XX:+UnlockExperimentalVMOptions
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=4M
+-XX:MaxInlineLevel=15

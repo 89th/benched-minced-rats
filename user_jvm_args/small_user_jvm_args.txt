@@ -1,0 +1,4 @@
+-XX:+UseZGC
+-XX:+UseCompactObjectHeaders
+-Dchunky.maxWorkingCount=1024
+
