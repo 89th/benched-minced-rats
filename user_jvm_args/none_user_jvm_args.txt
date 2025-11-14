@@ -1,1 +1,3 @@
+-Xms24G
+-Xmx24G
 -Dlog4j.configurationFile=log4j2.xml

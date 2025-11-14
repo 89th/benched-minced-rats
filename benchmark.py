@@ -10,7 +10,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVER_JAR = "fabric-server-mc.1.21.10-loader.0.17.3-launcher.1.1.0.jar"
 WORLD_FOLDER = os.path.join(SCRIPT_DIR, "world")
 
-CHUNKY_RADIUS = 1000
+CHUNKY_RADIUS = 15000
 
 JAVA_PATHS = {
     "/usr/lib/jvm/java-25-graalvm/bin/java": "graalvm-java",
@@ -201,7 +201,7 @@ start_profiling_scripts()
 try:
     for java_path, identifier in JAVA_PATHS.items():
         for jvm_args_file in USER_JVM_ARGS:
-            for run_number in range(1, 4):
+            for run_number in range(1, 5):
                 run_benchmark(java_path, jvm_args_file, identifier, run_number)
 finally:
     stop_profiling_scripts()

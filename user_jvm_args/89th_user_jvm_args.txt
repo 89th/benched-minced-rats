@@ -1,5 +1,5 @@
--Xms60G
--Xmx60G
+-Xms24G
+-Xmx24G
 -XX:+UseG1GC
 -XX:MaxGCPauseMillis=130
 -XX:+UnlockExperimentalVMOptions
@@ -43,3 +43,4 @@
 -Dgraal.BaseTargetSpending=160
 -Dchunky.maxWorkingCount=1024
 -Dlog4j.configurationFile=log4j2.xml
+-Dchunky.maxWorkingCount=1028

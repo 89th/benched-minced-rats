@@ -7,3 +7,4 @@
 -XX:G1HeapRegionSize=4M
 -XX:MaxInlineLevel=15
 -Dlog4j.configurationFile=log4j2.xml
+-Dchunky.maxWorkingCount=1028

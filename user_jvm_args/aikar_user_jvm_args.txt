@@ -21,3 +21,4 @@
 -Dusing.aikars.flags=https://mcflags.emc.gs
 -Daikars.new.flags=true
 -Dlog4j.configurationFile=log4j2.xml
+-Dchunky.maxWorkingCount=1028
