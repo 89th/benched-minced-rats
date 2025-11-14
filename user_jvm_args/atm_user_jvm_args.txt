@@ -7,4 +7,5 @@
 -XX:+AlwaysPreTouch
 -XX:+PerfDisableSharedMem
 -XX:+UseDynamicNumberOfGCThreads
+-Dlog4j.configurationFile=log4j2.xml
 

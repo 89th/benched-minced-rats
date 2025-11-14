@@ -42,4 +42,4 @@
 -Dgraal.LoopRotation=true
 -Dgraal.BaseTargetSpending=160
 -Dchunky.maxWorkingCount=1024
-
+-Dlog4j.configurationFile=log4j2.xml

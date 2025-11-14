@@ -2,12 +2,15 @@ import subprocess
 import re
 import os
 import shutil
+import time
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SERVER_JAR = "fabric-server-mc.1.21.10-loader.0.17.3-launcher.1.1.0.jar"
 WORLD_FOLDER = os.path.join(SCRIPT_DIR, "world")
+
+CHUNKY_RADIUS = 1000
 
 JAVA_PATHS = {
     "/usr/lib/jvm/java-25-graalvm/bin/java": "graalvm-java",
@@ -17,8 +20,8 @@ JAVA_PATHS = {
 }
 
 USER_JVM_ARGS = [
-    "89th_user_jvm_args",
-    "small_user_jvm_args",
+    "89th_user_jvm_args.txt",
+    "small_user_jvm_args.txt",
     "atm_user_jvm_args.txt",
     "aikar_user_jvm_args.txt",
     "velocity_user_jvm_args.txt",
@@ -30,11 +33,20 @@ DIMENSION_PATTERN = [
     r"Compiled program for minecraft:the_end for device"
 ]
 
-CHUNKY_RADIUS_PATTERN = r"Radius changed to 1000\."
+CHUNKY_RADIUS_PATTERN = rf"Radius changed to {CHUNKY_RADIUS}\."
 STOP_PATTERN = r"Task finished for minecraft:overworld\."
 
 BENCHMARK_DIR = os.path.join(SCRIPT_DIR, "benchmarks")
 os.makedirs(BENCHMARK_DIR, exist_ok=True)
+
+CHUNKY_TASKS_FOLDER = os.path.join(SCRIPT_DIR, "config", "chunky", "tasks")
+
+
+def clear_folder(folder_path):
+    if os.path.exists(folder_path):
+        print(f"Clearing folder: {folder_path}")
+        shutil.rmtree(folder_path)
+    os.makedirs(folder_path, exist_ok=True)
 
 
 def wait_for_pattern(process, pattern, logfile):
@@ -80,17 +92,27 @@ def delete_world():
         shutil.rmtree(WORLD_FOLDER)
 
 
-delete_world()
+def delete_chunky_tasks():
+    if os.path.exists(CHUNKY_TASKS_FOLDER):
+        print(f"Deleting Chunky tasks folder: {CHUNKY_TASKS_FOLDER}")
+        shutil.rmtree(CHUNKY_TASKS_FOLDER)
 
 
-def run_benchmark(java_path, jvm_args_file, identifier):
+clear_folder(BENCHMARK_DIR)
+clear_folder(CHUNKY_TASKS_FOLDER)
+
+
+def run_benchmark(java_path, jvm_args_file, identifier, run_number):
     delete_world()
+    delete_chunky_tasks()
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_filename = f"benchmark_{identifier}_{jvm_args_file}_{timestamp}.log"
+    log_filename = f"benchmark_{identifier}_{jvm_args_file}_run{run_number}_{timestamp}.log"
     log_path = os.path.join(BENCHMARK_DIR, log_filename)
 
     print(f"\n==== Running benchmark ====")
-    print(f"Java: {java_path} ({identifier}), JVM args: {jvm_args_file}")
+    print(
+        f"Run {run_number}: Java: {java_path} ({identifier}), JVM args: {jvm_args_file}")
     print(f"Logging to: {log_path}")
 
     jar_file = os.path.join(SCRIPT_DIR, SERVER_JAR)
@@ -111,18 +133,36 @@ def run_benchmark(java_path, jvm_args_file, identifier):
 
         wait_for_pattern(process, r"Done \([0-9.]+s\)!", logfile)
         wait_for_all_patterns(process, DIMENSION_PATTERN, logfile)
-        send_input(process, "chunky radius 1000", logfile)
+        send_input(process, f"chunky radius {CHUNKY_RADIUS}", logfile)
         wait_for_pattern(process, CHUNKY_RADIUS_PATTERN, logfile)
         send_input(process, "chunky start", logfile)
-        wait_for_pattern(process, STOP_PATTERN, logfile)
-        print("Task finished detected, stopping server...")
-        send_input(process, "stop", logfile)
+
+        regex_stop = re.compile(STOP_PATTERN)
+        last_health_time = 0
+        while True:
+            line = process.stdout.readline().decode(errors="ignore")
+            if line:
+                line_clean = line.strip()
+                print(line_clean)
+                logfile.write(line)
+                logfile.flush()
+                if regex_stop.search(line_clean):
+                    print("Task finished detected, stopping server...")
+                    send_input(process, "stop", logfile)
+                    break
+
+            now = time.time()
+            if now - last_health_time >= 5:
+                send_input(process, "spark healthreport", logfile)
+                last_health_time = now
+
         process.wait()
         print("Server stopped.")
 
 
 for java_path, identifier in JAVA_PATHS.items():
     for jvm_args_file in USER_JVM_ARGS:
-        run_benchmark(java_path, jvm_args_file, identifier)
+        for run_number in range(1, 4):
+            run_benchmark(java_path, jvm_args_file, identifier, run_number)
 
 print("\nAll benchmarks completed.")

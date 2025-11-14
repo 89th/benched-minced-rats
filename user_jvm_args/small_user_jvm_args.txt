@@ -1,4 +1,4 @@
 -XX:+UseZGC
 -XX:+UseCompactObjectHeaders
 -Dchunky.maxWorkingCount=1024
-
+-Dlog4j.configurationFile=log4j2.xml
