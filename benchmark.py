@@ -41,12 +41,50 @@ os.makedirs(BENCHMARK_DIR, exist_ok=True)
 
 CHUNKY_TASKS_FOLDER = os.path.join(SCRIPT_DIR, "config", "chunky", "tasks")
 
+PROFILING_SCRIPTS = [
+    "log_cpumem.sh",
+    "log_disk.sh",
+    "log_gpu.sh"
+]
+PROFILING_FOLDER = os.path.join(SCRIPT_DIR, "profiling")
+profiling_processes = []
+
 
 def clear_folder(folder_path):
     if os.path.exists(folder_path):
         print(f"Clearing folder: {folder_path}")
         shutil.rmtree(folder_path)
     os.makedirs(folder_path, exist_ok=True)
+
+
+def start_profiling_scripts():
+    for script in PROFILING_SCRIPTS:
+        script_path = os.path.join(PROFILING_FOLDER, script)
+        if os.path.exists(script_path):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_file = os.path.join(BENCHMARK_DIR, f"{script}_{timestamp}.log")
+            print(f"Starting {script} → logging to {log_file}")
+            f = open(log_file, "w")
+            proc = subprocess.Popen(
+                ["bash", script_path],
+                stdout=f,
+                stderr=subprocess.STDOUT
+            )
+            profiling_processes.append((proc, f))
+        else:
+            print(f"Script not found: {script_path}")
+
+
+def stop_profiling_scripts():
+    for proc, f in profiling_processes:
+        print(f"Stopping {proc.args[-1]}...")
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            print("Force killing process...")
+            proc.kill()
+        f.close()
 
 
 def wait_for_pattern(process, pattern, logfile):
@@ -96,10 +134,6 @@ def delete_chunky_tasks():
     if os.path.exists(CHUNKY_TASKS_FOLDER):
         print(f"Deleting Chunky tasks folder: {CHUNKY_TASKS_FOLDER}")
         shutil.rmtree(CHUNKY_TASKS_FOLDER)
-
-
-clear_folder(BENCHMARK_DIR)
-clear_folder(CHUNKY_TASKS_FOLDER)
 
 
 def run_benchmark(java_path, jvm_args_file, identifier, run_number):
@@ -160,9 +194,16 @@ def run_benchmark(java_path, jvm_args_file, identifier, run_number):
         print("Server stopped.")
 
 
-for java_path, identifier in JAVA_PATHS.items():
-    for jvm_args_file in USER_JVM_ARGS:
-        for run_number in range(1, 4):
-            run_benchmark(java_path, jvm_args_file, identifier, run_number)
+clear_folder(BENCHMARK_DIR)
+clear_folder(CHUNKY_TASKS_FOLDER)
+start_profiling_scripts()
+
+try:
+    for java_path, identifier in JAVA_PATHS.items():
+        for jvm_args_file in USER_JVM_ARGS:
+            for run_number in range(1, 4):
+                run_benchmark(java_path, jvm_args_file, identifier, run_number)
+finally:
+    stop_profiling_scripts()
 
 print("\nAll benchmarks completed.")
