@@ -1,6 +1,8 @@
 library(dplyr)
 library(stringr)
 library(ggplot2)
+library(data.table)
+
 # Time conversions
 {
   convert_epoch_to_RFC3339 <- function (epoch){
@@ -17,12 +19,16 @@ library(ggplot2)
     return (as.numeric(as.POSIXct(datetime %>% str_replace("$","-0600"), format = "%Y-%m-%d %H:%M:%S%z", tz = "UTC")))
   }
   
-  convert_humantime_to_epoch <- function (time){
-    return (as.numeric(as.POSIXct(time %>% str_replace("$","-0600"), format = "%Y-%m-%d %H:%M:%S%z", tz = "UTC")))
-  }
-  
   convert_plainhumantime_to_epoch <- function (time){
     return (as.numeric(as.POSIXct(time %>% str_replace("$","-0600"), format = "%Y%m%d %H%M%S%z", tz = "UTC")))
+  }
+  
+  convert_humanelapsedtime_to_seconds <- function (humanelapsedtime){
+    convert_one_humanelapsedtime <- function (onetime){
+      onetimesplit = as.numeric(str_split_1(onetime,":"))
+      return (onetimesplit[1]*3600 + onetimesplit[2]*60 + onetimesplit[3]*1)
+    }
+    return (sapply(humanelapsedtime,convert_one_humanelapsedtime))
   }
 }
 
@@ -72,6 +78,16 @@ library(ggplot2)
 {
   samples_meta = read.csv("meta.tsv", sep = "\t", header = T)
   
+  samples_checkpoints = read.csv("../checkpoints_tsvs/benchmarks_checkpoints.tsv", sep = "\t", header = T)
+  for (human_time_entry in colnames(samples_checkpoints)[colnames(samples_checkpoints) %like% "human_time$"]){
+    samples_checkpoints[[human_time_entry %>% str_replace("human_time$","timestamp")]] <- convert_RFC3339_truncated_to_epoch(samples_checkpoints[[human_time_entry]])
+  }
+  samples_checkpoints$chunky_elapsed_time_seconds <- convert_humanelapsedtime_to_seconds(samples_checkpoints$chunky_elapsed_time)
+  samples_checkpoints$java <- ""
+  samples_checkpoints$args <- ""
+  samples_checkpoints$replicate <- ""
+  samples_checkpoints$avg_heap <- 0
+  
   logs_chunky <- data.frame()
   logs_spark <- data.frame()
   for (sample_filename in levels(factor(samples_meta$filename))){
@@ -79,7 +95,7 @@ library(ggplot2)
     colnames(sample_stats) <- c("human_time","chunks","eta","cps")
     
     metadata = samples_meta[samples_meta$filename %in% sample_filename,]
-    sample_stats <- mutate(sample_stats, timestamp = convert_humantime_to_epoch(human_time))
+    sample_stats <- mutate(sample_stats, timestamp = convert_RFC3339_truncated_to_epoch(human_time))
     sample_stats$filename <- metadata$filename
     sample_stats$java <- metadata$java
     sample_stats$args <- metadata$args
@@ -91,13 +107,18 @@ library(ggplot2)
     sample_spark <- read.csv(paste0("../spark_tsvs/", sample_filename, ".tsv"), header = F, sep = "\t")
     colnames(sample_spark) <- c("human_time","heap","max_heap")
     
-    sample_spark <- mutate(sample_spark, timestamp = convert_humantime_to_epoch(human_time))
+    sample_spark <- mutate(sample_spark, timestamp = convert_RFC3339_truncated_to_epoch(human_time))
     sample_spark$filename <- metadata$filename
     sample_spark$java <- metadata$java
     sample_spark$args <- metadata$args
     sample_spark$replicate <- metadata$replicate
     sample_spark$timestamp_tared <- sample_spark$timestamp - min(sample_spark$timestamp)
     logs_spark <- rbind(logs_spark, sample_spark)
+    
+    samples_checkpoints[samples_checkpoints$filename %in% sample_filename,]$java <- metadata$java
+    samples_checkpoints[samples_checkpoints$filename %in% sample_filename,]$args <- metadata$args
+    samples_checkpoints[samples_checkpoints$filename %in% sample_filename,]$replicate <- metadata$replicate
+    samples_checkpoints[samples_checkpoints$filename %in% sample_filename,]$avg_heap <- mean(sample_spark$heap)
   }
   
   {
@@ -121,7 +142,7 @@ library(ggplot2)
   # Removing poorly-threaded JVM args test
   logs_chunky <- logs_chunky[!logs_chunky$args %in% c("none_user_jvm_args"),]
   
-  
+  # Plotting time series data for each java
   for (javatype in levels(factor(samples_meta$java))){
     p <- ggplot(data=logs_chunky[logs_chunky$java %in% c(javatype),],mapping = aes(x=timestamp_tared))+
       geom_point(aes(x=timestamp_tared, y=cps*750,color=args), size=0.5, alpha=0.05, shape = 4)+
@@ -132,5 +153,35 @@ library(ggplot2)
            title = paste0("Chunks generated over time - ",javatype),
            subtitle = paste0("Same seed. Different JVM args. 4 replicates each."))
     ggsave(filename = paste0("results/chunks_over_time_",javatype,".pdf"),plot = p, width = 9, height = 6)
+  }
+  
+  # Plotting bar charts to compare single-number results from each run
+  {
+    p <- ggplot(samples_checkpoints) +
+      geom_boxplot(data = samples_checkpoints,
+                   aes(x = factor(paste0(args," (",java,")")), y = chunky_elapsed_time_seconds, color = args, group = paste0(java,"_",args)),
+                   position = position_dodge(width = 4), fill = "black", outlier.size = 0.5, outlier.shape = 4, alpha=1) +
+      
+      geom_pointrange(data = samples_checkpoints,
+                      aes(x = factor(paste0(args," (",java,")")),
+                          y = chunky_elapsed_time_seconds,
+                          color = args,
+                          ymin=chunky_elapsed_time_seconds,
+                          ymax=chunky_elapsed_time_seconds,
+                          size = avg_heap,
+                          shape = java),
+                      linewidth = 0.5,
+                      position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
+      
+      scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),
+                             range   = c(0.2, 1))+
+      
+      labs(x = "Test group",
+           y = paste0("Chunky elapsed time (seconds)"),
+           title = paste0("Chunky timings (lower is better)"),
+           subtitle = paste0("Same seed. Different JVM and args. 4 replicates each.")) +
+      theme_minimal()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    ggsave(filename = paste0("results/chunky_elapsed_time_all.pdf"), plot = p, width = 15, height = 5, scale = 1.5)
   }
 }

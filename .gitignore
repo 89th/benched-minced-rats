@@ -1,2 +1,3 @@
 system*log
-*.png
+*.~lock.*#
+*_render.png
