@@ -10,7 +10,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVER_JAR = "fabric-server-mc.1.21.10-loader.0.17.3-launcher.1.1.0.jar"
 WORLD_FOLDER = os.path.join(SCRIPT_DIR, "world")
 
-CHUNKY_RADIUS = 15000
+# Haha this is funny number of 666c
+CHUNKY_RADIUS = 10656
 
 JAVA_PATHS = {
     "/usr/lib/jvm/java-25-graalvm/bin/java": "graalvm-java",
@@ -61,30 +62,26 @@ def start_profiling_scripts():
     for script in PROFILING_SCRIPTS:
         script_path = os.path.join(PROFILING_FOLDER, script)
         if os.path.exists(script_path):
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            log_file = os.path.join(BENCHMARK_DIR, f"{script}_{timestamp}.log")
-            print(f"Starting {script} → logging to {log_file}")
-            f = open(log_file, "w")
+            print(f"Starting profiling script: {script}")
             proc = subprocess.Popen(
                 ["bash", script_path],
-                stdout=f,
-                stderr=subprocess.STDOUT
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
-            profiling_processes.append((proc, f))
+            profiling_processes.append(proc)
         else:
             print(f"Script not found: {script_path}")
 
 
 def stop_profiling_scripts():
-    for proc, f in profiling_processes:
-        print(f"Stopping {proc.args[-1]}...")
+    for proc in profiling_processes:
+        print(f"Stopping profiling script PID={proc.pid}...")
         proc.terminate()
         try:
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            print("Force killing process...")
+            print("Force killing profiling script...")
             proc.kill()
-        f.close()
 
 
 def wait_for_pattern(process, pattern, logfile):
@@ -203,6 +200,7 @@ try:
         for jvm_args_file in USER_JVM_ARGS:
             for run_number in range(1, 5):
                 run_benchmark(java_path, jvm_args_file, identifier, run_number)
+                time.sleep(5)
 finally:
     stop_profiling_scripts()
 
