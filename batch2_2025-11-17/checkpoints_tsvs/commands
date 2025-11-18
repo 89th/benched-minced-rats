@@ -1,5 +1,5 @@
 #!/bin/bash
-printf "filename\tscript_start_timestamp\twarning_timestamp\tserver_start_timestamp\tcompile_overworld_start_timestamp\tcompile_overworld_end_timestamp\tcompile_the_nether_start_timestamp\tcompile_the_nether_end_timestamp\tcompile_the_end_start_timestamp\tcompile_the_end_end_timestamp\telapsed_timestamp\telapsed_time_ms\tserver_started_timestamp\tserver_started_elapsed_time\tchunky_start_timestamp\tchunky_radius\tchunky_end_timestamp\tchunky_chunks\tchunky_elapsed_time\n" > benchmarks_checkpoints.tsv
+printf "filename\tscript_start_human_time\twarning_human_time\tserver_start_human_time\tcompile_overworld_start_human_time\tcompile_overworld_end_human_time\tcompile_the_nether_start_human_time\tcompile_the_nether_end_human_time\tcompile_the_end_start_human_time\tcompile_the_end_end_human_time\telapsed_human_time\telapsed_time_ms\tserver_started_human_time\tserver_started_elapsed_time\tchunky_start_human_time\tchunky_radius\tchunky_end_human_time\tchunky_chunks\tchunky_elapsed_time\n" > benchmarks_checkpoints.tsv
 
 ls ../benchmark_logs/*.log | parallel "printf \"{/.} \
 \t\$(grep {} -Pe 'Loading [0-9]+ mods' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
