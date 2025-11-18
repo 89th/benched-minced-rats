@@ -41,6 +41,6 @@
 -XX:NodeLimitFudgeFactor=8000
 -Dgraal.LoopRotation=true
 -Dgraal.BaseTargetSpending=160
--Dchunky.maxWorkingCount=1024
 -Dlog4j.configurationFile=log4j2.xml
 -Dchunky.maxWorkingCount=1028
+-Dcom.ishland.c2me.base.skipWarningWait=true

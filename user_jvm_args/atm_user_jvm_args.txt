@@ -9,3 +9,4 @@
 -XX:+UseDynamicNumberOfGCThreads
 -Dlog4j.configurationFile=log4j2.xml
 -Dchunky.maxWorkingCount=1028
+-Dcom.ishland.c2me.base.skipWarningWait=true
