@@ -1,0 +1,11 @@
+-Xms24G 
+-Xmx24G
+-XX:+UseZGC
+-XX:+ZGenerational
+-XX:SoftMaxHeapSize=10g
+-XX:+DisableExplicitGC
+-XX:+AlwaysPreTouch
+-XX:+PerfDisableSharedMem
+-XX:+UseDynamicNumberOfGCThreads
+-Dlog4j.configurationFile=log4j2.xml
+-Dchunky.maxWorkingCount=1028

@@ -1,4 +1,5 @@
 #!/bin/bash
 
 starttime=$(date +%s)
-vmstat 5 -twn >> vmstat_cpumem_${starttime}.log
+vmstat 5 -twn >> system_cpumem_${starttime}.log
+

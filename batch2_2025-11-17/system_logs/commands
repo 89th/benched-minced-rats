@@ -1,0 +1,6 @@
+ls *cpumem*.log | parallel "tail -n +2 {} | sed -r 's/(-[0-9]{2,2}) ([0-9])/\1sillyplaceholder\2/g' | sed -r 's/^\s+//g' | sed -r 's/\s+/\t/g' | sed -r 's/sillyplaceholder/ /g' > {.}.tsv"
+
+ls *disk*.log | parallel "tail -n +2 {} | sed -r 's/(-[0-9]{2,2}) ([0-9])/\1sillyplaceholder\2/g' | sed -r 's/^\s+//g' | sed -r 's/\s+/\t/g' | sed -r 's/sillyplaceholder/ /g' | sed -r 's/^total/disk\ttotal/g' > {.}.tsv"
+
+ls *gpu*.log | parallel "sed -r 's/,/\t/g' > {.}.tsv"
+

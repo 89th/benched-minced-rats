@@ -1,0 +1,5 @@
+#!/bin/bash
+
+printf "filename\tjava\targs\treplicate\tdate\ttime\n" > meta.tsv
+
+find ../benchmark_logs | grep "log$" | sort | parallel -k "printf \"{/.}\t\$(echo {/} | sed -r 's/^benchmark_([a-zA-Z-]+)_(.+).txt_run([0-9]+)_([0-9]+)_([0-9]+).log$/\1\t\2\t\3\t\4\t\5/g')\n\"" >> meta.tsv
