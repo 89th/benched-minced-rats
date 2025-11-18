@@ -1,0 +1,18 @@
+#!/bin/bash
+printf "filename\tscript_start_timestamp\twarning_timestamp\tserver_start_timestamp\tcompile_overworld_start_timestamp\tcompile_overworld_end_timestamp\tcompile_the_nether_start_timestamp\tcompile_the_nether_end_timestamp\tcompile_the_end_start_timestamp\tcompile_the_end_end_timestamp\telapsed_timestamp\telapsed_time_ms\tserver_started_timestamp\tserver_started_elapsed_time\tchunky_start_timestamp\tchunky_radius\tchunky_end_timestamp\tchunky_chunks\tchunky_elapsed_time\n" > benchmarks_checkpoints.tsv
+
+ls ../benchmark_logs/*.log | parallel "printf \"{/.} \
+\t\$(grep {} -Pe 'Loading [0-9]+ mods' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'The server will start in' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Starting minecraft server version' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Compiling program for minecraft:overworld for device OpenCL Device gfx1100' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Compiled program for minecraft:overworld for device OpenCL Device gfx1100' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Compiling program for minecraft:the_nether for device OpenCL Device gfx1100' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Compiled program for minecraft:the_nether for device OpenCL Device gfx1100' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Compiling program for minecraft:the_end for device OpenCL Device gfx1100' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Compiled program for minecraft:the_end for device OpenCL Device gfx1100' | sed -r 's/^\[([0-9: -]+)\].*$/\1/g') \
+\t\$(grep {} -Pe 'Time elapsed' | sed -r 's/^\[([0-9: -]+)\].* ([0-9]+) .*$/\1\t\2/g') \
+\t\$(grep {} -Pe 'For help, type' | sed -r 's/^\[([0-9: -]+)\].*[^0-9]([0-9]+)s.*$/\1\t\2/g') \
+\t\$(grep {} -Pe 'Task started in minecraft:overworld' | sed -r 's/^\[([0-9: -]+)\].*radius ([0-9]+)\.$/\1\t\2/g') \
+\t\$(grep {} -Pe 'Task finished for minecraft:overworld' | sed -r 's/^\[([0-9: -]+)\].* ([0-9]+) chunks.* ([0-9:]+)$/\1\t\2\t\3/g') \
+\n\" >> benchmarks_checkpoints.tsv"
