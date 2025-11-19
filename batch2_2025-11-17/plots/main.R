@@ -157,31 +157,76 @@ library(data.table)
   
   # Plotting bar charts to compare single-number results from each run
   {
-    p <- ggplot(samples_checkpoints) +
-      geom_boxplot(data = samples_checkpoints,
-                   aes(x = factor(paste0(args," (",java,")")), y = chunky_elapsed_time_seconds, color = args, group = paste0(java,"_",args)),
-                   position = position_dodge(width = 4), fill = "black", outlier.size = 0.5, outlier.shape = 4, alpha=1) +
-      
-      geom_pointrange(data = samples_checkpoints,
-                      aes(x = factor(paste0(args," (",java,")")),
-                          y = chunky_elapsed_time_seconds,
-                          color = args,
-                          ymin=chunky_elapsed_time_seconds,
-                          ymax=chunky_elapsed_time_seconds,
-                          size = avg_heap,
-                          shape = java),
-                      linewidth = 0.5,
-                      position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
-      
-      scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),
-                             range   = c(0.2, 1))+
-      
-      labs(x = "Test group",
-           y = paste0("Chunky elapsed time (seconds)"),
-           title = paste0("Chunky timings (lower is better)"),
-           subtitle = paste0("Same seed. Different JVM and args. 4 replicates each.")) +
-      theme_minimal()+
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-    ggsave(filename = paste0("results/chunky_elapsed_time_all.pdf"), plot = p, width = 15, height = 5, scale = 1.5)
+    # Chunky elapsed time
+    {
+      p <- ggplot(samples_checkpoints) +
+        geom_boxplot(data = samples_checkpoints,aes(x = factor(paste0(args," (",java,")")), y = chunky_elapsed_time_seconds, color = args, group = paste0(java,"_",args)),position = position_dodge(width = 4), fill = "black", outlier.size = 0.5, outlier.shape = 4, alpha=1) +
+        geom_pointrange(data = samples_checkpoints,
+                        aes(x = factor(paste0(args," (",java,")")),
+                            y = chunky_elapsed_time_seconds,
+                            color = args,
+                            ymin=chunky_elapsed_time_seconds,
+                            ymax=chunky_elapsed_time_seconds,
+                            size = avg_heap,
+                            shape = java),
+                        linewidth = 0.5,
+                        position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
+        scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        labs(x = "Test group",
+             y = paste0("Chunky elapsed time (seconds)"),
+             title = paste0("Chunky timings (lower is better)"),
+             subtitle = paste0("Same seed. Different JVM and args. 4 replicates each.")) +
+        theme_minimal()+
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      ggsave(filename = paste0("results/chunky_elapsed_time_all.pdf"), plot = p, width = 15, height = 5, scale = 1.5)
+    }
+    
+    # Server startup time
+    {
+      p <- ggplot(samples_checkpoints) +
+        geom_boxplot(data = samples_checkpoints,aes(x = factor(paste0(args," (",java,")")), y = elapsed_time_ms/1000, color = args, group = paste0(java,"_",args)),position = position_dodge(width = 4), fill = "black", outlier.size = 0.5, outlier.shape = 4, alpha=1) +
+        geom_pointrange(data = samples_checkpoints,
+                        aes(x = factor(paste0(args," (",java,")")),
+                            y = elapsed_time_ms/1000,
+                            color = args,
+                            ymin=elapsed_time_ms/1000,
+                            ymax=elapsed_time_ms/1000,
+                            size = avg_heap,
+                            shape = java),
+                        linewidth = 0.5,
+                        position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
+        scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        labs(x = "Test group",
+             y = paste0("Server startup elapsed time (seconds)"),
+             title = paste0("Startup timings (lower is better)"),
+             subtitle = paste0("Same seed. Different JVM and args. 4 replicates each.")) +
+        theme_minimal()+
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      ggsave(filename = paste0("results/startup_elapsed_time_all.pdf"), plot = p, width = 15, height = 5, scale = 1.5)
+    }
+    
+    # Overall run elapsed time
+    {
+      p <- ggplot(samples_checkpoints) +
+        geom_boxplot(data = samples_checkpoints,aes(x = factor(paste0(args," (",java,")")), y = chunky_end_timestamp - script_start_timestamp, color = args, group = paste0(java,"_",args)),position = position_dodge(width = 4), fill = "black", outlier.size = 0.5, outlier.shape = 4, alpha=1) +
+        geom_pointrange(data = samples_checkpoints,
+                        aes(x = factor(paste0(args," (",java,")")),
+                            y = chunky_end_timestamp - script_start_timestamp,
+                            color = args,
+                            ymin=chunky_end_timestamp - script_start_timestamp,
+                            ymax=chunky_end_timestamp - script_start_timestamp,
+                            size = avg_heap,
+                            shape = java),
+                        linewidth = 0.5,
+                        position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
+        scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        labs(x = "Test group",
+             y = paste0("Overall run elapsed time (seconds)"),
+             title = paste0("Overall run time (lower is better)"),
+             subtitle = paste0("Same seed. Different JVM and args. 4 replicates each.")) +
+        theme_minimal()+
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      ggsave(filename = paste0("results/overall_run_elapsed_time_all.pdf"), plot = p, width = 15, height = 5, scale = 1.5)
+    }
   }
 }
