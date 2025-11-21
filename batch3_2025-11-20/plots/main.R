@@ -182,6 +182,7 @@ library(data.table)
                         linewidth = 0.5,
                         position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
         scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        scale_y_continuous(limits = c(0,max(samples_checkpoints$chunky_elapsed_time_seconds)))+
         labs(x = "Test group",
              y = paste0("Chunky elapsed time (seconds)"),
              title = paste0("Chunky timings (lower is better)"),
@@ -206,6 +207,7 @@ library(data.table)
                         linewidth = 0.5,
                         position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
         scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        scale_y_continuous(limits = c(0,max(samples_checkpoints$elapsed_time_ms/1000)))+
         labs(x = "Test group",
              y = paste0("Server startup elapsed time (seconds)"),
              title = paste0("Startup timings (lower is better)"),
@@ -230,6 +232,7 @@ library(data.table)
                         linewidth = 0.5,
                         position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
         scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        scale_y_continuous(limits = c(0,max(samples_checkpoints$chunky_end_timestamp - samples_checkpoints$script_start_timestamp)))+
         labs(x = "Test group",
              y = paste0("Overall run elapsed time (seconds)"),
              title = paste0("Overall run time (lower is better)"),
@@ -254,6 +257,7 @@ library(data.table)
                         linewidth = 0.5,
                         position=position_jitterdodge(dodge.width=4, jitter.width = 0.5)) +
         scale_size_continuous(limits = c(min(samples_checkpoints$avg_heap, na.rm = TRUE), max(samples_checkpoints$avg_heap, na.rm = TRUE)),range   = c(0.2, 1))+
+        scale_y_continuous(limits = c(0,max(samples_checkpoints$chunky_chunks/(samples_checkpoints$chunky_elapsed_time_seconds))))+
         labs(x = "Test group",
              y = paste0("Calculated chunks per second (total chunks / elapsed seconds)"),
              title = paste0("Calculated chunks per second (higher is better)"),
